@@ -32,7 +32,6 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "src/views/Editor.vue"
   ],
   "exclude": [
     "node_modules"
