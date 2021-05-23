@@ -63,7 +63,7 @@ export default defineComponent({
   bottom: 0;
   left: 0;
   width: 300px;
-  background-color: #4f4f4f;
+  background-color: #364346;
 }
 #canvas-container {
   top: 0;
