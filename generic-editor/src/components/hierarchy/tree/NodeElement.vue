@@ -1,9 +1,16 @@
 <template>
   <div class="node">
     <div @click="toggle" class="node-toggler">
-      <span class="node-toggler-name">{{ item.name }}</span>
-      <span v-if="isFolder" class="node-toggler-marker">
-        [{{ isOpen ? "-" : "+" }}]
+      <span
+        class="node-toggler-marker"
+        :class="{ hidden: !isFolder, clicked: isOpen }"
+        >&#10148;
+      </span>
+      <span class="node-name">
+        {{ item.name }}
+      </span>
+      <span class="node-visibility" :class="{ isVisible: isVisible }">
+        &#128065;
       </span>
     </div>
     <div v-show="isOpen" v-if="isFolder">
@@ -20,7 +27,9 @@
 import { defineComponent, PropType } from "vue";
 
 interface INode {
+  id: number;
   name: string;
+  isVisible: boolean;
   children: INode[];
 }
 export default defineComponent({
@@ -30,7 +39,9 @@ export default defineComponent({
       require: true,
       type: Object as PropType<INode>,
       default: () => ({
+        id: -1,
         name: "",
+        isVisible: true,
         children: [],
       }),
     },
@@ -46,6 +57,9 @@ export default defineComponent({
         return false;
       }
       return this.item.children && this.item.children.length !== 0;
+    },
+    isVisible(): boolean {
+      return this.item.isVisible;
     },
   },
   methods: {
@@ -67,24 +81,12 @@ export default defineComponent({
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  justify-content: space-between;
+  justify-content: flex-start;
+  align-items: center;
 
   cursor: pointer;
 
-  padding: 5px 0 5px 15px;
-
-  background-color: inherit;
-  transition: 0.3s;
-}
-
-.node-toggler-marker,
-.node-toggler-name {
-  font-size: 2em;
-  color: #b1b8ba;
-}
-
-.node-toggler-marker {
-  margin-right: 5px;
+  transition: color 0.3s, background-color 0.3s;
 }
 
 .node-toggler:hover {
@@ -93,7 +95,44 @@ export default defineComponent({
 .node-toggler:hover > .node-toggler-marker {
   color: #ffffff;
 }
-.node-toggler:hover > .node-toggler-name {
+
+.node-toggler:hover > .node-name {
+  color: #ffffff;
+}
+
+/* ------------------ */
+.node-name {
+  padding-left: 10px;
+  font-size: 2.2em;
+  color: #b1b8ba;
+}
+
+/* ------------------ */
+.node-toggler-marker {
+  font-size: 2em;
+  color: #b1b8ba;
+  visibility: "visible";
+
+  transform: rotate(0deg);
+  transition: transform 0.3s;
+}
+
+.node-toggler-marker.clicked {
+  transform: rotate(90deg);
+}
+
+.node-toggler-marker.hidden {
+  visibility: hidden;
+}
+
+/* ------------------ */
+.node-visibility {
+  margin: 0 10px 0 auto;
+  font-size: 2.5em;
+  color: #b1b8ba;
+  transition: color 0.5s;
+}
+.node-visibility.isVisible {
   color: #ffffff;
 }
 </style>

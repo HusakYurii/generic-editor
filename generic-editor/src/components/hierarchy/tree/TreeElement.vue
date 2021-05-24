@@ -17,27 +17,35 @@ export default defineComponent({
   data() {
     return {
       treeData: {
+        id: 0,
         name: "Root",
+        isVisible: true,
         children: [
-          { name: "child-1", children: [] },
-          { name: "child-2", children: [] },
+          { id: 1, name: "child-1", isVisible: true, children: [] },
+          { id: 1, name: "child-2", isVisible: true, children: [] },
           {
+            id: 1,
             name: "child-3",
+            isVisible: true,
             children: [
               {
+                id: 1,
                 name: "child-3.1",
+                isVisible: true,
                 children: [
-                  { name: "child-3.1.1", children: [] },
-                  { name: "child-3.1.2", children: [] },
+                  { id: 1, name: "child-3.1.1", isVisible: true, children: [] },
+                  { id: 1, name: "child-3.1.2", isVisible: true, children: [] },
                 ],
               },
-              { name: "child-3.2", children: [] },
-              { name: "child-3.3", children: [] },
+              { id: 1, name: "child-3.2", isVisible: true, children: [] },
+              { id: 1, name: "child-3.3", isVisible: true, children: [] },
               {
+                id: 1,
                 name: "child-3.4",
+                isVisible: true,
                 children: [
-                  { name: "child-3.4.1", children: [] },
-                  { name: "child-3.4.2", children: [] },
+                  { id: 1, name: "child-3.4.1", isVisible: true, children: [] },
+                  { id: 1, name: "child-3.4.2", isVisible: true, children: [] },
                 ],
               },
             ],
