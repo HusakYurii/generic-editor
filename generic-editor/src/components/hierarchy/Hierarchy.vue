@@ -4,20 +4,25 @@
       <h3>HIERARCHY</h3>
     </div>
     <div id="hierarchy-tree">
-      <TreeElement />
+      <TreeElement :treeModel="treeModel" />
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-
+import { treeModelMock } from "./tree/TreeModelMock";
 import TreeElement from "./tree/TreeElement.vue";
 
 export default defineComponent({
   name: "Hierarchy",
   components: {
     TreeElement,
+  },
+  data() {
+    return {
+      treeModel: treeModelMock,
+    };
   },
   methods: {
     onContextmenu(event: Event) {
