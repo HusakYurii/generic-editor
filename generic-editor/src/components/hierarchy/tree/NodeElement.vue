@@ -7,17 +7,18 @@
         >&#10148;
       </span>
       <span class="node-name">
-        {{ item.name }}
+        {{ nodeModel.name }}
       </span>
       <span class="node-visibility" :class="{ isVisible: isVisible }">
         &#128065;
       </span>
     </div>
-    <div v-show="isOpen" v-if="isFolder">
+    <div v-show="isOpen" class="node-list">
       <NodeElement
-        v-for="(child, index) in item.children"
-        :key="index"
-        :item="child"
+        v-for="data in nodeModel.children"
+        :key="data.id"
+        :nodeModel="data"
+        :ref="updateNode"
       />
     </div>
   </div>
@@ -25,48 +26,72 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
+import {
+  NodeProps,
+  NodeData,
+  NodeComputed,
+  NodeMethods,
+  NodeModel,
+  NodePublicInstance,
+} from "./NodeElement";
 
-interface INode {
-  id: number;
-  name: string;
-  isVisible: boolean;
-  children: INode[];
-}
-export default defineComponent({
+export default defineComponent<
+  NodeProps,
+  unknown,
+  NodeData,
+  NodeComputed,
+  NodeMethods
+>({
   name: "NodeElement",
   props: {
-    item: {
+    nodeModel: {
       require: true,
-      type: Object as PropType<INode>,
-      default: () => ({
-        id: -1,
-        name: "",
-        isVisible: true,
-        children: [],
-      }),
+      type: Object as PropType<NodeModel>,
+      default(): NodeModel {
+        return {
+          id: -1,
+          name: "Default",
+          isDraggable: true,
+          isVisible: true,
+          children: [],
+        };
+      },
     },
   },
   data() {
     return {
+      id: -1,
       isOpen: false,
+      treeNodes: [],
+      toggler: document.createElement("div"),
     };
+  },
+  mounted(): void {
+    this.id = this.nodeModel.id;
+    this.toggler = this.$el.querySelector("div.node-toggler") as HTMLElement;
+  },
+  beforeUpdate(): void {
+    this.treeNodes = [];
   },
   computed: {
     isFolder(): boolean {
-      if (this.item === undefined) {
+      if (this.nodeModel === undefined) {
         return false;
       }
-      return this.item.children && this.item.children.length !== 0;
+      return this.nodeModel.children && this.nodeModel.children.length !== 0;
     },
     isVisible(): boolean {
-      return this.item.isVisible;
+      return this.nodeModel.isVisible;
     },
   },
   methods: {
-    toggle() {
+    toggle(): void {
       if (this.isFolder) {
         this.isOpen = !this.isOpen;
       }
+    },
+    updateNode(el: NodePublicInstance): void {
+      this.treeNodes.push(el);
     },
   },
 });
@@ -90,8 +115,9 @@ export default defineComponent({
 }
 
 .node-toggler:hover {
-  background-color: #2c393c;
+  background-color: #1f2729;
 }
+
 .node-toggler:hover > .node-toggler-marker {
   color: #ffffff;
 }
