@@ -17,10 +17,23 @@ export type TreeComputed = {
   isRoot: () => boolean;
 };
 
+export type Bounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type Result = {
+  node: NodePublicInstance | null;
+  bounds: Bounds;
+};
+
 export type TreeMethods = {
   updateNode: (el: NodePublicInstance) => void;
+  onMouseDown: (event: MouseEvent) => void;
   onMouseMove: (event: MouseEvent) => void;
-  findElement: (x: number, y: number, elements: NodePublicInstance[]) => number;
+  onMouseUp: (event: MouseEvent) => void;
 };
 
 export type TreePublicInstance = ComponentPublicInstance<

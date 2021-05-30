@@ -1,5 +1,10 @@
 <template>
-  <div id="tree" @mousemove="onMouseMove">
+  <div
+    id="tree"
+    @mousedown="onMouseDown"
+    @mouseup="onMouseUp"
+    @mousemove="onMouseMove"
+  >
     <NodeElement :ref="updateNode" :nodeModel="treeModel" :key="treeModel.id" />
   </div>
 </template>
@@ -7,10 +12,26 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 
-import { TreeProps, TreeData, TreeComputed, TreeMethods } from "./TreeElement";
+import {
+  TreeProps,
+  TreeData,
+  TreeComputed,
+  TreeMethods,
+  Result,
+  Bounds,
+} from "./TreeElement";
 
 import NodeElement from "./NodeElement.vue";
 import { NodeModel, NodePublicInstance } from "./NodeElement";
+import { findElement, getPositionInTheBox } from "./treeUtils";
+
+let isClicked = false;
+let mouseButtons: number[] = [];
+let drabbedData: Result & { previousNode: NodePublicInstance | null } = {
+  node: null,
+  previousNode: null,
+  bounds: { x: 0, y: 0, width: 0, height: 0 },
+};
 
 export default defineComponent<
   TreeProps,
@@ -59,34 +80,68 @@ export default defineComponent<
     updateNode(el: NodePublicInstance): void {
       this.treeNodes.push(el);
     },
-    onMouseMove(event: MouseEvent): void {
-      const id = this.findElement(event.clientX, event.clientY, this.treeNodes);
-      console.log(id);
-    },
-    findElement(x: number, y: number, elements: NodePublicInstance[]): number {
-      let foundID = -1;
-
-      for (let i = 0; i < elements.length; i += 1) {
-        const bounds = elements[i].toggler.getBoundingClientRect();
-
-        if (
-          x > bounds.x &&
-          x < bounds.x + bounds.width &&
-          y > bounds.y &&
-          y < bounds.y + bounds.height
-        ) {
-          foundID = elements[i].id;
-          break;
-        }
-
-        if (foundID === -1) {
-          foundID = this.findElement(x, y, elements[i].treeNodes);
-        }
-        if (foundID !== -1) {
-          return foundID;
-        }
+    onMouseDown(event: MouseEvent) {
+      if (mouseButtons.includes(event.button)) {
+        return;
       }
-      return foundID;
+      mouseButtons.push(event.button);
+      isClicked = true;
+
+      const { bounds, node } = findElement(
+        event.clientX,
+        event.clientY,
+        this.treeNodes
+      );
+
+      drabbedData.bounds = bounds;
+      drabbedData.node = node;
+
+      console.log(`onMouseDown: node is${drabbedData.node ? "" : "n't"} found`);
+    },
+    onMouseMove(event: MouseEvent): void {
+      if (!isClicked) {
+        return;
+      }
+      event.preventDefault();
+
+      const { node, bounds } = findElement(
+        event.clientX,
+        event.clientY,
+        this.treeNodes
+      );
+
+      const borderType = getPositionInTheBox(
+        event.clientX,
+        event.clientY,
+        bounds
+      );
+
+      if (drabbedData.previousNode !== node) {
+        drabbedData.previousNode?.removeBorders();
+        drabbedData.previousNode = node;
+      } else {
+        node?.removeBorders();
+      }
+
+      if (borderType) {
+        node?.showBorder(borderType);
+      }
+    },
+    onMouseUp(event: MouseEvent) {
+      if (!mouseButtons.includes(event.button)) {
+        return;
+      }
+      mouseButtons.splice(mouseButtons.indexOf(event.button), 1);
+      isClicked = false;
+
+      drabbedData.node?.removeBorders();
+      drabbedData.previousNode?.removeBorders();
+
+      drabbedData.node = null;
+      drabbedData.previousNode = null;
+      drabbedData.bounds = { x: 0, y: 0, width: 0, height: 0 };
+
+      console.log(`onMouseMove:Clean up Drabbed Data`);
     },
   },
 });
@@ -95,5 +150,6 @@ export default defineComponent<
 <style scoped>
 #tree {
   padding: 15px 0;
+  cursor: pointer;
 }
 </style>
