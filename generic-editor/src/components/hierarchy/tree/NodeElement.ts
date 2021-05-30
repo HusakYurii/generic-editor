@@ -8,11 +8,18 @@ export type NodeProps = {
   };
 };
 
+export enum BorderTypes {
+  Top = "Top",
+  Center = "Center",
+  Bottom = "Bottom",
+}
+
 export type NodeData = {
   id: number;
   isOpen: boolean;
   toggler: HTMLElement;
   treeNodes: NodePublicInstance[];
+  borderClassesMap: Record<BorderTypes, string>;
 };
 
 export type NodeComputed = {
@@ -23,6 +30,8 @@ export type NodeComputed = {
 export type NodeMethods = {
   toggle: () => void;
   updateNode: (el: NodePublicInstance) => void;
+  showBorder: (side: BorderTypes) => void;
+  removeBorders: () => void;
 };
 
 export type NodeModel = {

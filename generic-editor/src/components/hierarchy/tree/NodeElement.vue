@@ -1,6 +1,6 @@
 <template>
   <div class="node">
-    <div @click="toggle" class="node-toggler">
+    <div @click.stop="toggle" class="node-toggler">
       <span
         class="node-toggler-marker"
         :class="{ hidden: !isFolder, clicked: isOpen }"
@@ -33,6 +33,7 @@ import {
   NodeMethods,
   NodeModel,
   NodePublicInstance,
+  BorderTypes,
 } from "./NodeElement";
 
 export default defineComponent<
@@ -64,6 +65,11 @@ export default defineComponent<
       isOpen: false,
       treeNodes: [],
       toggler: document.createElement("div"),
+      borderClassesMap: {
+        [BorderTypes.Top]: "borderTop",
+        [BorderTypes.Center]: "borderCenter",
+        [BorderTypes.Bottom]: "borderBottom",
+      },
     };
   },
   mounted(): void {
@@ -93,6 +99,16 @@ export default defineComponent<
     updateNode(el: NodePublicInstance): void {
       this.treeNodes.push(el);
     },
+    showBorder(side: BorderTypes): void {
+      this.toggler.classList.toggle(this.borderClassesMap[side]);
+    },
+    removeBorders(): void {
+      Object.values(this.borderClassesMap).forEach((className) => {
+        if (this.toggler.classList.contains(className)) {
+          this.toggler.classList.toggle(className);
+        }
+      });
+    },
   },
 });
 </script>
@@ -109,8 +125,6 @@ export default defineComponent<
   justify-content: flex-start;
   align-items: center;
 
-  cursor: pointer;
-
   transition: color 0.3s, background-color 0.3s;
 }
 
@@ -124,6 +138,24 @@ export default defineComponent<
 
 .node-toggler:hover > .node-name {
   color: #ffffff;
+}
+
+.node-toggler.borderTop {
+  box-shadow: 0px 4px 0px 0px rgba(249, 170, 97, 1) inset;
+  -webkit-box-shadow: 0px 4px 0px 0px rgba(249, 170, 97, 1) inset;
+  -moz-box-shadow: 0px 4px 0px 0px rgba(249, 170, 97, 1) inset;
+}
+
+.node-toggler.borderCenter {
+  box-shadow: 0px 0px 0px 4px rgba(249, 170, 97, 1) inset;
+  -webkit-box-shadow: 0px 0px 0px 4px rgba(249, 170, 97, 1) inset;
+  -moz-box-shadow: 0px 0px 0px 4px rgba(249, 170, 97, 1) inset;
+}
+
+.node-toggler.borderBottom {
+  box-shadow: 0px -4px 0px 0px rgba(249, 170, 97, 1) inset;
+  -webkit-box-shadow: 0px -4px 0px 0px rgba(249, 170, 97, 1) inset;
+  -moz-box-shadow: 0px -4px 0px 0px rgba(249, 170, 97, 1) inset;
 }
 
 /* ------------------ */
