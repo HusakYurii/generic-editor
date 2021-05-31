@@ -17,19 +17,27 @@ import {
   TreeData,
   TreeComputed,
   TreeMethods,
-  Result,
   Bounds,
 } from "./TreeElement";
 
 import NodeElement from "./NodeElement.vue";
 import { NodeModel, NodePublicInstance } from "./NodeElement";
-import { findElement, getPositionInTheBox } from "./treeUtils";
+import {
+  findElement,
+  getPositionInTheBox,
+  isChild,
+  isSameNode,
+} from "./treeUtils";
 
 let isClicked = false;
 let mouseButtons: number[] = [];
-let drabbedData: Result & { previousNode: NodePublicInstance | null } = {
-  node: null,
-  previousNode: null,
+let grabbedData: {
+  currentNode: NodePublicInstance | null;
+  newParentNode: NodePublicInstance | null;
+  bounds: Bounds;
+} = {
+  currentNode: null,
+  newParentNode: null,
   bounds: { x: 0, y: 0, width: 0, height: 0 },
 };
 
@@ -51,7 +59,7 @@ export default defineComponent<
       default(): NodeModel {
         return {
           id: -1000,
-          name: "Root",
+          name: "Default",
           isDraggable: false,
           isVisible: true,
           children: [],
@@ -73,7 +81,7 @@ export default defineComponent<
   computed: {
     // dummy method was added to avoid ts errors about empty TreeComputed type
     isRoot(): boolean {
-      return this.treeModel.id === -1000 && this.treeModel.name === "Root";
+      return true;
     },
   },
   methods: {
@@ -81,7 +89,9 @@ export default defineComponent<
       this.treeNodes.push(el);
     },
     onMouseDown(event: MouseEvent) {
-      if (mouseButtons.includes(event.button)) {
+      event.preventDefault();
+      // assume the 0 is always mouse's left button
+      if (event.button !== 0) {
         return;
       }
       mouseButtons.push(event.button);
@@ -93,16 +103,25 @@ export default defineComponent<
         this.treeNodes
       );
 
-      drabbedData.bounds = bounds;
-      drabbedData.node = node;
-
-      console.log(`onMouseDown: node is${drabbedData.node ? "" : "n't"} found`);
-    },
-    onMouseMove(event: MouseEvent): void {
-      if (!isClicked) {
+      if (!node) {
+        return;
+      } else if (node.id === this.treeModel.id) {
         return;
       }
+
+      grabbedData.bounds = bounds;
+      grabbedData.currentNode = node;
+
+      console.log(
+        `onMouseDown: node is${grabbedData.currentNode ? "" : "n't"} found`
+      );
+    },
+    onMouseMove(event: MouseEvent): void {
       event.preventDefault();
+
+      if (!isClicked || !grabbedData.currentNode) {
+        return;
+      }
 
       const { node, bounds } = findElement(
         event.clientX,
@@ -110,15 +129,31 @@ export default defineComponent<
         this.treeNodes
       );
 
+      let isValid = true;
+      if (!node) {
+        isValid = false;
+      } else if (isSameNode(grabbedData.currentNode, node)) {
+        isValid = false;
+      } else if (isChild(grabbedData.currentNode, node)) {
+        isValid = false;
+      }
+
+      if (!isValid) {
+        grabbedData.newParentNode?.removeBorders();
+        grabbedData.currentNode?.removeBorders();
+        grabbedData.newParentNode = null;
+        return;
+      }
+
       const borderType = getPositionInTheBox(
         event.clientX,
         event.clientY,
         bounds
       );
 
-      if (drabbedData.previousNode !== node) {
-        drabbedData.previousNode?.removeBorders();
-        drabbedData.previousNode = node;
+      if (grabbedData.newParentNode !== node) {
+        grabbedData.newParentNode?.removeBorders();
+        grabbedData.newParentNode = node;
       } else {
         node?.removeBorders();
       }
@@ -126,22 +161,36 @@ export default defineComponent<
       if (borderType) {
         node?.showBorder(borderType);
       }
+      console.log(node?.id);
     },
     onMouseUp(event: MouseEvent) {
+      event.preventDefault();
+
       if (!mouseButtons.includes(event.button)) {
         return;
       }
-      mouseButtons.splice(mouseButtons.indexOf(event.button), 1);
+      mouseButtons.length = 0;
       isClicked = false;
 
-      drabbedData.node?.removeBorders();
-      drabbedData.previousNode?.removeBorders();
+      console.log(
+        `currentNode ${!grabbedData.currentNode ? "does't" : ""} exist`
+      );
+      console.log(
+        `newParentNode ${!grabbedData.newParentNode ? "does't" : ""} exist`
+      );
 
-      drabbedData.node = null;
-      drabbedData.previousNode = null;
-      drabbedData.bounds = { x: 0, y: 0, width: 0, height: 0 };
+      if (!grabbedData.newParentNode) {
+        return;
+      }
 
-      console.log(`onMouseMove:Clean up Drabbed Data`);
+      grabbedData.currentNode?.removeBorders();
+      grabbedData.newParentNode?.removeBorders();
+
+      grabbedData.currentNode = null;
+      grabbedData.newParentNode = null;
+      grabbedData.bounds = { x: 0, y: 0, width: 0, height: 0 };
+
+      // console.log(`onMouseMove:Clean up Drabbed Data`);
     },
   },
 });
