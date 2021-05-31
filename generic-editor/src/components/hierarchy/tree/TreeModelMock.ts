@@ -8,7 +8,7 @@ export const generateID = (() => {
 })();
 
 export const treeModelMock: NodeModel = {
-  id: -1000,
+  id: generateID(),
   name: "Root",
   isVisible: true,
   isDraggable: false,
@@ -87,11 +87,40 @@ export const treeModelMock: NodeModel = {
               name: "child-3.4.2",
               isVisible: true,
               isDraggable: true,
-              children: [],
+              children: [
+                {
+                  id: generateID(),
+                  name: "child-3.4.2.1",
+                  isVisible: true,
+                  isDraggable: true,
+                  children: [],
+                },
+                {
+                  id: generateID(),
+                  name: "child-3.4.2.2",
+                  isVisible: true,
+                  isDraggable: true,
+                  children: [],
+                },
+              ],
             },
           ],
         },
       ],
+    },
+    {
+      id: generateID(),
+      name: "child-4",
+      isVisible: true,
+      isDraggable: true,
+      children: [],
+    },
+    {
+      id: generateID(),
+      name: "child-5",
+      isVisible: true,
+      isDraggable: true,
+      children: [],
     },
   ],
 };
