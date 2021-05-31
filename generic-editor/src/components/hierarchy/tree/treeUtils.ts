@@ -1,4 +1,4 @@
-import { BorderTypes, NodePublicInstance } from "./NodeElement";
+import { BorderTypes, NodePublicInstance, NodeModel } from "./NodeElement";
 import { Bounds, Result } from "./TreeElement";
 
 export const isInside = (bounds: Bounds, x: number, y: number): boolean => {
@@ -15,26 +15,24 @@ export const findElement = (
   y: number,
   treeNodes: NodePublicInstance[]
 ): Result => {
-  let bounds: Bounds = { x: 0, y: 0, width: 0, height: 0 };
-  let node: NodePublicInstance | null = null;
-
   for (let i = 0; i < treeNodes.length; i += 1) {
-    bounds = treeNodes[i].toggler.getBoundingClientRect();
+    const bounds = treeNodes[i].toggler.getBoundingClientRect();
 
     if (isInside(bounds, x, y)) {
       return { bounds, node: treeNodes[i] };
     }
 
-    if (node === null) {
-      const result = findElement(x, y, treeNodes[i].treeNodes);
-      bounds = result.bounds;
-      node = result.node;
-    }
-    if (node !== null) {
-      return { bounds, node };
+    const result = findElement(x, y, treeNodes[i].treeNodes);
+
+    if (result.node) {
+      return {
+        bounds: result.bounds,
+        node: result.node,
+      };
     }
   }
-  return { bounds, node };
+  // if wasn't found
+  return { bounds: { x: 0, y: 0, width: 0, height: 0 }, node: null };
 };
 
 export const getPositionInTheBox = (
@@ -67,4 +65,38 @@ export const getPositionInTheBox = (
   if (isInside(center, x, y)) return BorderTypes.Center;
   if (isInside(bottom, x, y)) return BorderTypes.Bottom;
   else return null;
+};
+
+export const isSameNode = (
+  element1: NodePublicInstance,
+  element2: NodePublicInstance
+): boolean => {
+  return element1.id === element2.id;
+};
+
+export const findElementByID = (
+  id: number,
+  treeNodes: NodePublicInstance[]
+): NodePublicInstance | null => {
+  for (let i = 0; i < treeNodes.length; i += 1) {
+    if (treeNodes[i].id === id) {
+      return treeNodes[i];
+    }
+
+    const node = findElementByID(id, treeNodes[i].treeNodes);
+
+    if (node) {
+      return node;
+    }
+  }
+
+  return null;
+};
+
+export const isChild = (
+  parent: NodePublicInstance,
+  child: NodePublicInstance
+): boolean => {
+  const result = findElementByID(child.id, parent.treeNodes);
+  return Boolean(result);
 };
