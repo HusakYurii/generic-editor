@@ -32,6 +32,7 @@ export type NodeMethods = {
   updateNode: (el: NodePublicInstance) => void;
   showBorder: (side: BorderTypes) => void;
   removeBorders: () => void;
+  copyModel: () => NodeModel;
 };
 
 export type NodeModel = {

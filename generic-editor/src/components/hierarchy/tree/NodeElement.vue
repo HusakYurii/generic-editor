@@ -109,6 +109,22 @@ export default defineComponent<
         }
       });
     },
+    copyModel(): NodeModel {
+      const model: NodeModel = {
+        id: this.nodeModel.id,
+        name: this.nodeModel.name,
+        isDraggable: this.nodeModel.isDraggable,
+        isVisible: this.nodeModel.isVisible,
+        children: [],
+      };
+
+      for (let i = 0; i < this.treeNodes.length; i += 1) {
+        const child = this.treeNodes[i];
+        const childModel = child.copyModel();
+        model.children.push(childModel);
+      }
+      return model;
+    },
   },
 });
 </script>
