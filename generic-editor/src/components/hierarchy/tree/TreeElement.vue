@@ -12,21 +12,17 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 
-import {
-  TreeProps,
-  TreeData,
-  TreeComputed,
-  TreeMethods,
-  Bounds,
-} from "./TreeElement";
+import { TreeProps, TreeData, TreeComputed, TreeMethods } from "./TreeElement";
 
 import NodeElement from "./NodeElement.vue";
 import { NodeModel, NodePublicInstance } from "./NodeElement";
 import {
+  appendModel,
   findElement,
   getPositionInTheBox,
   isChild,
   isSameNode,
+  removeModel,
 } from "./treeUtils";
 
 let isClicked = false;
@@ -34,11 +30,9 @@ let mouseButtons: number[] = [];
 let grabbedData: {
   currentNode: NodePublicInstance | null;
   newParentNode: NodePublicInstance | null;
-  bounds: Bounds;
 } = {
   currentNode: null,
   newParentNode: null,
-  bounds: { x: 0, y: 0, width: 0, height: 0 },
 };
 
 export default defineComponent<
@@ -85,8 +79,12 @@ export default defineComponent<
     },
   },
   methods: {
+    /* Sometimes when Vue rerenders the elements, an el can be null
+     */
     updateNode(el: NodePublicInstance): void {
-      this.treeNodes.push(el);
+      if (el) {
+        this.treeNodes.push(el);
+      }
     },
     onMouseDown(event: MouseEvent) {
       event.preventDefault();
@@ -103,17 +101,14 @@ export default defineComponent<
         this.treeNodes
       );
 
-      if (!node) {
-        return;
-      } else if (node.id === this.treeModel.id) {
+      if (!node || node.id === this.treeModel.id) {
         return;
       }
 
-      grabbedData.bounds = bounds;
       grabbedData.currentNode = node;
 
       console.log(
-        `onMouseDown: node is${grabbedData.currentNode ? "" : "n't"} found`
+        `onMouseDown: node is${grabbedData.currentNode ? "" : " NOT"} found`
       );
     },
     onMouseMove(event: MouseEvent): void {
@@ -161,7 +156,7 @@ export default defineComponent<
       if (borderType) {
         node?.showBorder(borderType);
       }
-      console.log(node?.id);
+      console.log(`onMouseMove: hover on top of ${node?.copyModel().name}`);
     },
     onMouseUp(event: MouseEvent) {
       event.preventDefault();
@@ -172,25 +167,27 @@ export default defineComponent<
       mouseButtons.length = 0;
       isClicked = false;
 
-      console.log(
-        `currentNode ${!grabbedData.currentNode ? "does't" : ""} exist`
-      );
-      console.log(
-        `newParentNode ${!grabbedData.newParentNode ? "does't" : ""} exist`
-      );
-
-      if (!grabbedData.newParentNode) {
+      if (!grabbedData.newParentNode || !grabbedData.currentNode) {
+        grabbedData.currentNode = null;
+        grabbedData.newParentNode = null;
         return;
       }
 
-      grabbedData.currentNode?.removeBorders();
-      grabbedData.newParentNode?.removeBorders();
+      grabbedData.currentNode.removeBorders();
+      grabbedData.newParentNode.removeBorders();
+
+      const nodeModel = grabbedData.currentNode.copyModel();
+      const targetID = grabbedData.newParentNode.id;
+
+      if (removeModel(this.treeModel, nodeModel.id)) {
+        console.log(`onMouseUp: child ${nodeModel.name} was removed`);
+      }
+      if (appendModel(this.treeModel, targetID, nodeModel)) {
+        console.log(`onMouseUp: child was added to new parent`);
+      }
 
       grabbedData.currentNode = null;
       grabbedData.newParentNode = null;
-      grabbedData.bounds = { x: 0, y: 0, width: 0, height: 0 };
-
-      // console.log(`onMouseMove:Clean up Drabbed Data`);
     },
   },
 });

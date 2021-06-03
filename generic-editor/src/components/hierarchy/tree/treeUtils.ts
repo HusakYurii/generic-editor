@@ -100,3 +100,39 @@ export const isChild = (
   const result = findElementByID(child.id, parent.treeNodes);
   return Boolean(result);
 };
+
+export const removeModel = (treeModel: NodeModel, childNodeID: number): boolean => {
+
+  for (let i = 0; i < treeModel.children.length; i++) {
+    const nodeModel = treeModel.children[i];
+
+    if (nodeModel.id === childNodeID) {
+      treeModel.children.splice(i, 1);
+      return true;
+    }
+
+    if (removeModel(nodeModel, childNodeID)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+export const appendModel = (treeModel: NodeModel, parentNodeID: number, model: NodeModel): boolean => {
+
+  if (treeModel.id === parentNodeID) {
+    treeModel.children.push(model);
+    return true;
+  }
+
+  for (let i = 0; i < treeModel.children.length; i++) {
+    const nodeModel = treeModel.children[i];
+
+    if (appendModel(nodeModel, parentNodeID, model)) {
+      return true
+    }
+  }
+
+  return false;
+}

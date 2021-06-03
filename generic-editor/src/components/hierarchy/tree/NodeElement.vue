@@ -96,8 +96,12 @@ export default defineComponent<
         this.isOpen = !this.isOpen;
       }
     },
+    /* Sometimes when Vue rerenders the elements, an el can be null
+     */
     updateNode(el: NodePublicInstance): void {
-      this.treeNodes.push(el);
+      if (el) {
+        this.treeNodes.push(el);
+      }
     },
     showBorder(side: BorderTypes): void {
       this.toggler.classList.toggle(this.borderClassesMap[side]);
