@@ -4,6 +4,7 @@
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
     @mousemove="onMouseMove"
+    @mouseleave="onMouseLeave"
   >
     <NodeElement :ref="updateNode" :nodeModel="treeModel" :key="treeModel.id" />
   </div>
@@ -185,6 +186,17 @@ export default defineComponent<
       if (appendModel(this.treeModel, targetID, nodeModel)) {
         console.log(`onMouseUp: child was added to new parent`);
       }
+
+      grabbedData.currentNode = null;
+      grabbedData.newParentNode = null;
+    },
+    onMouseLeave(event: MouseEvent): void {
+      event.preventDefault();
+      isClicked = false;
+      mouseButtons.length = 0;
+
+      grabbedData.currentNode?.removeBorders();
+      grabbedData.newParentNode?.removeBorders();
 
       grabbedData.currentNode = null;
       grabbedData.newParentNode = null;

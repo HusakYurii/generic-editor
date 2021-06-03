@@ -34,6 +34,7 @@ export type TreeMethods = {
   onMouseDown: (event: MouseEvent) => void;
   onMouseMove: (event: MouseEvent) => void;
   onMouseUp: (event: MouseEvent) => void;
+  onMouseLeave: (event: MouseEvent) => void;
 };
 
 export type TreePublicInstance = ComponentPublicInstance<
