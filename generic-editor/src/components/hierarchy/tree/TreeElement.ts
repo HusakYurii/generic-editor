@@ -1,5 +1,5 @@
 import { ComponentPublicInstance, PropType } from "vue";
-import { NodeModel, NodePublicInstance } from "./NodeElement";
+import { Bounds, NodeModel, NodePublicInstance } from "./NodeElement";
 
 export type TreeProps = {
   treeModel: {
@@ -15,13 +15,6 @@ export type TreeData = {
 
 export type TreeComputed = {
   isRoot: () => boolean;
-};
-
-export type Bounds = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 };
 
 export type Result = {

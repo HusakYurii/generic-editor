@@ -18,9 +18,9 @@ import { TreeProps, TreeData, TreeComputed, TreeMethods } from "./TreeElement";
 import NodeElement from "./NodeElement.vue";
 import { NodeModel, NodePublicInstance } from "./NodeElement";
 import {
-  appendModel,
   findElement,
   getPositionInTheBox,
+  insert,
   isChild,
   isSameNode,
   removeModel,
@@ -96,7 +96,7 @@ export default defineComponent<
       mouseButtons.push(event.button);
       isClicked = true;
 
-      const { bounds, node } = findElement(
+      const { node } = findElement(
         event.clientX,
         event.clientY,
         this.treeNodes
@@ -180,12 +180,9 @@ export default defineComponent<
       const nodeModel = grabbedData.currentNode.copyModel();
       const targetID = grabbedData.newParentNode.id;
 
-      if (removeModel(this.treeModel, nodeModel.id)) {
-        console.log(`onMouseUp: child ${nodeModel.name} was removed`);
-      }
-      if (appendModel(this.treeModel, targetID, nodeModel)) {
-        console.log(`onMouseUp: child was added to new parent`);
-      }
+      removeModel(this.treeModel, nodeModel.id);
+
+      insert(this.treeModel, targetID, nodeModel);
 
       grabbedData.currentNode = null;
       grabbedData.newParentNode = null;

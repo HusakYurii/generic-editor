@@ -1,5 +1,10 @@
-import { BorderTypes, NodePublicInstance, NodeModel } from "./NodeElement";
-import { Bounds, Result } from "./TreeElement";
+import {
+  BorderTypes,
+  NodePublicInstance,
+  NodeModel,
+  Bounds,
+} from "./NodeElement";
+import { Result } from "./TreeElement";
 
 export const isInside = (bounds: Bounds, x: number, y: number): boolean => {
   return (
@@ -16,7 +21,7 @@ export const findElement = (
   treeNodes: NodePublicInstance[]
 ): Result => {
   for (let i = 0; i < treeNodes.length; i += 1) {
-    const bounds = treeNodes[i].toggler.getBoundingClientRect();
+    const bounds = treeNodes[i].getBounds();
 
     if (isInside(bounds, x, y)) {
       return { bounds, node: treeNodes[i] };
@@ -101,8 +106,12 @@ export const isChild = (
   return Boolean(result);
 };
 
-export const removeModel = (treeModel: NodeModel, childNodeID: number): boolean => {
-
+/* Utils for working with models
+ */
+export const removeModel = (
+  treeModel: NodeModel,
+  childNodeID: number
+): boolean => {
   for (let i = 0; i < treeModel.children.length; i++) {
     const nodeModel = treeModel.children[i];
 
@@ -119,8 +128,11 @@ export const removeModel = (treeModel: NodeModel, childNodeID: number): boolean 
   return false;
 };
 
-export const appendModel = (treeModel: NodeModel, parentNodeID: number, model: NodeModel): boolean => {
-
+export const insert = (
+  treeModel: NodeModel,
+  parentNodeID: number,
+  model: NodeModel
+): boolean => {
   if (treeModel.id === parentNodeID) {
     treeModel.children.push(model);
     return true;
@@ -129,10 +141,10 @@ export const appendModel = (treeModel: NodeModel, parentNodeID: number, model: N
   for (let i = 0; i < treeModel.children.length; i++) {
     const nodeModel = treeModel.children[i];
 
-    if (appendModel(nodeModel, parentNodeID, model)) {
-      return true
+    if (insert(nodeModel, parentNodeID, model)) {
+      return true;
     }
   }
 
   return false;
-}
+};

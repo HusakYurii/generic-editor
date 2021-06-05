@@ -1,5 +1,12 @@
 import { ComponentPublicInstance, PropType } from "vue";
 
+export type Bounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 export type NodeProps = {
   nodeModel: {
     require: boolean;
@@ -33,6 +40,7 @@ export type NodeMethods = {
   showBorder: (side: BorderTypes) => void;
   removeBorders: () => void;
   copyModel: () => NodeModel;
+  getBounds: () => Bounds;
 };
 
 export type NodeModel = {
@@ -50,3 +58,15 @@ export type NodePublicInstance = ComponentPublicInstance<
   NodeComputed,
   NodeMethods
 >;
+
+/**
+ * [1] если я нажал на єлемент, а он не существует - возврат из функции
+ * [1] если я нажал на єлемент но этот элемент является корневым - возврат из функции
+ * [1] если я мытаюсь присвоить родителя его ребенку - возврат
+ * [1] если я выбрал елетент и пытаюсь присвоить его сам себе - возврат
+ * [X] Вставить данные
+ * [X] Определить куда вставить данные - перед или после родилея
+ *   [X] вставть данніе после выбранного елеинта
+ *   [ ] вставить данные перед выбраным элемеентом
+ * [x] Курсос мышы вышел за приделы дерева - сбросить
+ */

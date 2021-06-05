@@ -34,6 +34,7 @@ import {
   NodeModel,
   NodePublicInstance,
   BorderTypes,
+  Bounds,
 } from "./NodeElement";
 
 export default defineComponent<
@@ -102,6 +103,9 @@ export default defineComponent<
       if (el) {
         this.treeNodes.push(el);
       }
+    },
+    getBounds(): Bounds {
+      return this.toggler.getBoundingClientRect();
     },
     showBorder(side: BorderTypes): void {
       this.toggler.classList.toggle(this.borderClassesMap[side]);
