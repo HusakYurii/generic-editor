@@ -16,24 +16,28 @@ import { defineComponent, PropType } from "vue";
 import { TreeProps, TreeData, TreeComputed, TreeMethods } from "./TreeElement";
 
 import NodeElement from "./NodeElement.vue";
-import { NodeModel, NodePublicInstance } from "./NodeElement";
+import { BorderTypes, NodeModel, NodePublicInstance } from "./NodeElement";
 import {
+  appendNode,
   findElement,
   getPositionInTheBox,
-  insert,
-  isChild,
+  insertBeforeNode,
+  isChildNode,
+  isNextNode,
   isSameNode,
-  removeModel,
+  removeNode,
 } from "./treeUtils";
 
+// if the values are not in the data at the start
+// Vue doesn't add reactivity to them
 let isClicked = false;
-let mouseButtons: number[] = [];
-let grabbedData: {
-  currentNode: NodePublicInstance | null;
-  newParentNode: NodePublicInstance | null;
+const mouseButtons: number[] = [];
+const nodes: {
+  current: NodePublicInstance | null;
+  parent: NodePublicInstance | null;
 } = {
-  currentNode: null,
-  newParentNode: null,
+  current: null,
+  parent: null,
 };
 
 export default defineComponent<
@@ -102,20 +106,19 @@ export default defineComponent<
         this.treeNodes
       );
 
+      // Root node can not be dragged
       if (!node || node.id === this.treeModel.id) {
         return;
       }
 
-      grabbedData.currentNode = node;
+      nodes.current = node;
 
-      console.log(
-        `onMouseDown: node is${grabbedData.currentNode ? "" : " NOT"} found`
-      );
+      console.log(`onMouseDown: node is${nodes.current ? "" : " NOT"} found`);
     },
     onMouseMove(event: MouseEvent): void {
       event.preventDefault();
 
-      if (!isClicked || !grabbedData.currentNode) {
+      if (!isClicked || !nodes.current) {
         return;
       }
 
@@ -128,18 +131,29 @@ export default defineComponent<
       let isValid = true;
       if (!node) {
         isValid = false;
-      } else if (isSameNode(grabbedData.currentNode, node)) {
+      }
+      // if mouse is hovering on the same node, the imput makes no sense
+      else if (isSameNode(nodes.current, node)) {
         isValid = false;
-      } else if (isChild(grabbedData.currentNode, node)) {
+      }
+      // parent can not be set to its child
+      else if (isChildNode(this.treeModel, nodes.current.id, node.id)) {
+        isValid = false;
+      }
+      // there is no sense to set a child to the same parent again
+      else if (isChildNode(this.treeModel, node.id, nodes.current.id)) {
         isValid = false;
       }
 
       if (!isValid) {
-        grabbedData.newParentNode?.removeBorders();
-        grabbedData.currentNode?.removeBorders();
-        grabbedData.newParentNode = null;
+        nodes.parent?.removeBorders();
+        nodes.current.removeBorders();
+        nodes.parent = null;
         return;
       }
+
+      nodes.parent?.removeBorders();
+      nodes.parent = node;
 
       const borderType = getPositionInTheBox(
         event.clientX,
@@ -147,17 +161,24 @@ export default defineComponent<
         bounds
       );
 
-      if (grabbedData.newParentNode !== node) {
-        grabbedData.newParentNode?.removeBorders();
-        grabbedData.newParentNode = node;
-      } else {
-        node?.removeBorders();
+      // we know that the node exsists by this point, but use ? to remove TS warnings
+      const isNext = isNextNode(
+        this.treeModel,
+        nodes.current.id,
+        node?.id || -1
+      );
+
+      // A node can be inserted between 2 nodes. But to avoid confusions,
+      // the node can not be set before next sibling node. There is no sense to to it
+      if (isNext && borderType === BorderTypes.Top) {
+        nodes.parent = null;
+        return;
       }
 
+      // we know that the node exsists by this point, but use ? to remove TS warnings
       if (borderType) {
         node?.showBorder(borderType);
       }
-      console.log(`onMouseMove: hover on top of ${node?.copyModel().name}`);
     },
     onMouseUp(event: MouseEvent) {
       event.preventDefault();
@@ -168,35 +189,47 @@ export default defineComponent<
       mouseButtons.length = 0;
       isClicked = false;
 
-      if (!grabbedData.newParentNode || !grabbedData.currentNode) {
-        grabbedData.currentNode = null;
-        grabbedData.newParentNode = null;
+      if (!nodes.parent || !nodes.current) {
+        nodes.current = null;
+        nodes.parent = null;
         return;
       }
 
-      grabbedData.currentNode.removeBorders();
-      grabbedData.newParentNode.removeBorders();
+      const borderType = getPositionInTheBox(
+        event.clientX,
+        event.clientY,
+        nodes.parent.getBounds()
+      );
 
-      const nodeModel = grabbedData.currentNode.copyModel();
-      const targetID = grabbedData.newParentNode.id;
+      nodes.current.removeBorders();
+      nodes.parent.removeBorders();
 
-      removeModel(this.treeModel, nodeModel.id);
+      const nodeModel = removeNode(this.treeModel, nodes.current.id);
+      const targetID = nodes.parent.id;
 
-      insert(this.treeModel, targetID, nodeModel);
+      if (!nodeModel) {
+        console.warn(
+          `Faild to remove node model from the tree for ID${nodes.current.id}`
+        );
+      } else if (borderType === BorderTypes.Top) {
+        insertBeforeNode(this.treeModel, targetID, nodeModel);
+      } else if (borderType === BorderTypes.Center) {
+        appendNode(this.treeModel, targetID, nodeModel);
+      }
 
-      grabbedData.currentNode = null;
-      grabbedData.newParentNode = null;
+      nodes.current = null;
+      nodes.parent = null;
     },
     onMouseLeave(event: MouseEvent): void {
       event.preventDefault();
       isClicked = false;
       mouseButtons.length = 0;
 
-      grabbedData.currentNode?.removeBorders();
-      grabbedData.newParentNode?.removeBorders();
+      nodes.current?.removeBorders();
+      nodes.parent?.removeBorders();
 
-      grabbedData.currentNode = null;
-      grabbedData.newParentNode = null;
+      nodes.current = null;
+      nodes.parent = null;
     },
   },
 });
@@ -204,7 +237,7 @@ export default defineComponent<
 
 <style scoped>
 #tree {
-  padding: 15px 0;
-  cursor: pointer;
+  margin-left: 10px;
+  cursor: default;
 }
 </style>

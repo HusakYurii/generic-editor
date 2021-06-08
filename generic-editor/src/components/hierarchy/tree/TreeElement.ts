@@ -17,7 +17,7 @@ export type TreeComputed = {
   isRoot: () => boolean;
 };
 
-export type Result = {
+export type SearchResult = {
   node: NodePublicInstance | null;
   bounds: Bounds;
 };

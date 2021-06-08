@@ -18,7 +18,6 @@ export type NodeProps = {
 export enum BorderTypes {
   Top = "Top",
   Center = "Center",
-  Bottom = "Bottom",
 }
 
 export type NodeData = {
@@ -39,7 +38,6 @@ export type NodeMethods = {
   updateNode: (el: NodePublicInstance) => void;
   showBorder: (side: BorderTypes) => void;
   removeBorders: () => void;
-  copyModel: () => NodeModel;
   getBounds: () => Bounds;
 };
 
@@ -58,15 +56,3 @@ export type NodePublicInstance = ComponentPublicInstance<
   NodeComputed,
   NodeMethods
 >;
-
-/**
- * [1] если я нажал на єлемент, а он не существует - возврат из функции
- * [1] если я нажал на єлемент но этот элемент является корневым - возврат из функции
- * [1] если я мытаюсь присвоить родителя его ребенку - возврат
- * [1] если я выбрал елетент и пытаюсь присвоить его сам себе - возврат
- * [X] Вставить данные
- * [X] Определить куда вставить данные - перед или после родилея
- *   [X] вставть данніе после выбранного елеинта
- *   [ ] вставить данные перед выбраным элемеентом
- * [x] Курсос мышы вышел за приделы дерева - сбросить
- */

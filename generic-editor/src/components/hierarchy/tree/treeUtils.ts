@@ -4,7 +4,7 @@ import {
   NodeModel,
   Bounds,
 } from "./NodeElement";
-import { Result } from "./TreeElement";
+import { SearchResult } from "./TreeElement";
 
 export const isInside = (bounds: Bounds, x: number, y: number): boolean => {
   return (
@@ -19,7 +19,7 @@ export const findElement = (
   x: number,
   y: number,
   treeNodes: NodePublicInstance[]
-): Result => {
+): SearchResult => {
   for (let i = 0; i < treeNodes.length; i += 1) {
     const bounds = treeNodes[i].getBounds();
 
@@ -59,24 +59,9 @@ export const getPositionInTheBox = (
     height: bounds.height * 0.6,
   };
 
-  const bottom: Bounds = {
-    x: bounds.x,
-    y: bounds.y + bounds.height * 0.8,
-    width: bounds.width,
-    height: bounds.height * 0.2,
-  };
-
   if (isInside(top, x, y)) return BorderTypes.Top;
   if (isInside(center, x, y)) return BorderTypes.Center;
-  if (isInside(bottom, x, y)) return BorderTypes.Bottom;
   else return null;
-};
-
-export const isSameNode = (
-  element1: NodePublicInstance,
-  element2: NodePublicInstance
-): boolean => {
-  return element1.id === element2.id;
 };
 
 export const findElementByID = (
@@ -98,29 +83,107 @@ export const findElementByID = (
   return null;
 };
 
-export const isChild = (
-  parent: NodePublicInstance,
-  child: NodePublicInstance
-): boolean => {
-  const result = findElementByID(child.id, parent.treeNodes);
-  return Boolean(result);
-};
-
 /* Utils for working with models
  */
-export const removeModel = (
+
+export const findNodeByID = (
   treeModel: NodeModel,
-  childNodeID: number
-): boolean => {
+  nodeID: number
+): NodeModel | null => {
+  // if trying to find itself, I don't now why, but)
+  if (treeModel.id === nodeID) {
+    return treeModel;
+  }
+
   for (let i = 0; i < treeModel.children.length; i++) {
     const nodeModel = treeModel.children[i];
 
-    if (nodeModel.id === childNodeID) {
-      treeModel.children.splice(i, 1);
-      return true;
+    if (nodeModel.id === nodeID) {
+      return nodeModel;
     }
 
-    if (removeModel(nodeModel, childNodeID)) {
+    const foundModel = findNodeByID(nodeModel, nodeID);
+    if (foundModel) {
+      return foundModel;
+    }
+  }
+
+  return null;
+};
+
+export const isChildNode = (
+  treeModel: NodeModel,
+  parentID: number,
+  childID: number
+): boolean => {
+  const parentModel = findNodeByID(treeModel, parentID);
+  if (!parentModel) {
+    return false;
+  }
+
+  return parentModel.children.some((node) => node.id === childID);
+};
+
+export const isSameNode = (
+  firstNode: { id: number },
+  secondNode: { id: number }
+): boolean => {
+  return firstNode.id === secondNode.id;
+};
+
+export const isNextNode = (
+  treeModel: NodeModel,
+  currentID: number,
+  nextID: number
+): boolean => {
+  const currModel = treeModel.children.find((node) => node.id === currentID);
+
+  if (currModel) {
+    const index = treeModel.children.indexOf(currModel);
+    const nextModel = treeModel.children[index + 1];
+    return nextModel && nextModel.id === nextID;
+  }
+
+  for (let i = 0; i < treeModel.children.length; i++) {
+    if (isNextNode(treeModel.children[i], currentID, nextID)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const removeNode = (
+  treeModel: NodeModel,
+  nodeID: number
+): NodeModel | null => {
+  for (let i = 0; i < treeModel.children.length; i++) {
+    const nodeModel = treeModel.children[i];
+
+    if (nodeModel.id === nodeID) {
+      return treeModel.children.splice(i, 1)[0];
+    }
+
+    const result = removeNode(nodeModel, nodeID);
+    if (result) {
+      return result;
+    }
+  }
+
+  return null;
+};
+
+export const appendNode = (
+  treeModel: NodeModel,
+  parentID: number,
+  nodeModel: NodeModel
+): boolean => {
+  if (treeModel.id === parentID) {
+    treeModel.children.push(nodeModel);
+    return true;
+  }
+
+  for (let i = 0; i < treeModel.children.length; i++) {
+    if (appendNode(treeModel.children[i], parentID, nodeModel)) {
       return true;
     }
   }
@@ -128,23 +191,23 @@ export const removeModel = (
   return false;
 };
 
-export const insert = (
+export const insertBeforeNode = (
   treeModel: NodeModel,
-  parentNodeID: number,
-  model: NodeModel
+  refNodeID: number,
+  nodeModel: NodeModel
 ): boolean => {
-  if (treeModel.id === parentNodeID) {
-    treeModel.children.push(model);
+  const refNode = treeModel.children.find((node) => node.id === refNodeID);
+
+  if (refNode) {
+    const index = treeModel.children.indexOf(refNode);
+    treeModel.children.splice(index, 0, nodeModel);
     return true;
   }
 
   for (let i = 0; i < treeModel.children.length; i++) {
-    const nodeModel = treeModel.children[i];
-
-    if (insert(nodeModel, parentNodeID, model)) {
+    if (insertBeforeNode(treeModel.children[i], refNodeID, nodeModel)) {
       return true;
     }
   }
-
   return false;
 };

@@ -1,19 +1,18 @@
 <template>
   <div class="node">
-    <div @click.stop="toggle" class="node-toggler">
-      <span
-        class="node-toggler-marker"
-        :class="{ hidden: !isFolder, clicked: isOpen }"
-        >&#10148;
-      </span>
-      <span class="node-name">
+    <div class="node-toggler">
+      <div v-if="isFolder" @click.stop="toggle" class="node-toggler-marker">
+        {{ isOpen ? " &#x2212;" : "&#x2b;" }}
+      </div>
+
+      <div class="node-name">
         {{ nodeModel.name }}
-      </span>
-      <span class="node-visibility" :class="{ isVisible: isVisible }">
+      </div>
+      <div class="node-visibility-marker" :class="{ isVisible: isVisible }">
         &#128065;
-      </span>
+      </div>
     </div>
-    <div v-show="isOpen" class="node-list">
+    <div v-show="isOpen">
       <NodeElement
         v-for="data in nodeModel.children"
         :key="data.id"
@@ -69,7 +68,6 @@ export default defineComponent<
       borderClassesMap: {
         [BorderTypes.Top]: "borderTop",
         [BorderTypes.Center]: "borderCenter",
-        [BorderTypes.Bottom]: "borderBottom",
       },
     };
   },
@@ -117,38 +115,20 @@ export default defineComponent<
         }
       });
     },
-    copyModel(): NodeModel {
-      const model: NodeModel = {
-        id: this.nodeModel.id,
-        name: this.nodeModel.name,
-        isDraggable: this.nodeModel.isDraggable,
-        isVisible: this.nodeModel.isVisible,
-        children: [],
-      };
-
-      for (let i = 0; i < this.treeNodes.length; i += 1) {
-        const child = this.treeNodes[i];
-        const childModel = child.copyModel();
-        model.children.push(childModel);
-      }
-      return model;
-    },
   },
 });
 </script>
 
 <style scoped>
 .node {
-  margin-left: 15px;
+  margin-left: 25px;
 }
 
 .node-toggler {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: flex-start;
-  align-items: center;
-
+  position: relative;
+  text-align: left;
+  padding: 3px 0 3px 8px;
+  border: 2px solid transparent;
   transition: color 0.3s, background-color 0.3s;
 }
 
@@ -156,65 +136,49 @@ export default defineComponent<
   background-color: #1f2729;
 }
 
-.node-toggler:hover > .node-toggler-marker {
-  color: #ffffff;
-}
-
 .node-toggler:hover > .node-name {
   color: #ffffff;
 }
 
 .node-toggler.borderTop {
-  box-shadow: 0px 4px 0px 0px rgba(249, 170, 97, 1) inset;
-  -webkit-box-shadow: 0px 4px 0px 0px rgba(249, 170, 97, 1) inset;
-  -moz-box-shadow: 0px 4px 0px 0px rgba(249, 170, 97, 1) inset;
+  border-top: 2px solid #f60;
 }
 
 .node-toggler.borderCenter {
-  box-shadow: 0px 0px 0px 4px rgba(249, 170, 97, 1) inset;
-  -webkit-box-shadow: 0px 0px 0px 4px rgba(249, 170, 97, 1) inset;
-  -moz-box-shadow: 0px 0px 0px 4px rgba(249, 170, 97, 1) inset;
+  border: 2px solid #f60;
 }
 
-.node-toggler.borderBottom {
-  box-shadow: 0px -4px 0px 0px rgba(249, 170, 97, 1) inset;
-  -webkit-box-shadow: 0px -4px 0px 0px rgba(249, 170, 97, 1) inset;
-  -moz-box-shadow: 0px -4px 0px 0px rgba(249, 170, 97, 1) inset;
+/* - IF NODE IS A FOLDER, IT HAS A TOGGLER MARKER, LIKE  " + " or  " - " ----- */
+.node-toggler-marker {
+  cursor: pointer;
+  position: absolute;
+  left: -24px;
+  font-size: 25px;
+  color: #ffffff;
+  background-color: #2c393c;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
 }
 
 /* ------------------ */
 .node-name {
-  padding-left: 10px;
-  font-size: 2.2em;
+  position: relative;
+  font-size: 15px;
   color: #b1b8ba;
+  white-space: nowrap;
 }
 
 /* ------------------ */
-.node-toggler-marker {
-  font-size: 2em;
-  color: #b1b8ba;
-  visibility: "visible";
-
-  transform: rotate(0deg);
-  transition: transform 0.3s;
-}
-
-.node-toggler-marker.clicked {
-  transform: rotate(90deg);
-}
-
-.node-toggler-marker.hidden {
-  visibility: hidden;
-}
-
-/* ------------------ */
-.node-visibility {
-  margin: 0 10px 0 auto;
-  font-size: 2.5em;
+.node-visibility-marker {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  font-size: 16px;
   color: #b1b8ba;
   transition: color 0.5s;
 }
-.node-visibility.isVisible {
+.node-visibility-marker.isVisible {
   color: #ffffff;
 }
 </style>
