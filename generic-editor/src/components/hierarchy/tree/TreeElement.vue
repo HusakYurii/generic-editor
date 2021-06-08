@@ -28,18 +28,6 @@ import {
   removeNode,
 } from "./treeUtils";
 
-// if the values are not in the data at the start
-// Vue doesn't add reactivity to them
-let isClicked = false;
-const mouseButtons: number[] = [];
-const nodes: {
-  current: NodePublicInstance | null;
-  parent: NodePublicInstance | null;
-} = {
-  current: null,
-  parent: null,
-};
-
 export default defineComponent<
   TreeProps,
   unknown,
@@ -69,6 +57,12 @@ export default defineComponent<
   data() {
     return {
       treeNodes: [],
+      isClicked: false,
+      mouseButtons: [],
+      nodes: {
+        current: null,
+        parent: null,
+      },
     };
   },
   mounted() {
@@ -97,8 +91,8 @@ export default defineComponent<
       if (event.button !== 0) {
         return;
       }
-      mouseButtons.push(event.button);
-      isClicked = true;
+      this.mouseButtons.push(event.button);
+      this.isClicked = true;
 
       const { node } = findElement(
         event.clientX,
@@ -111,14 +105,12 @@ export default defineComponent<
         return;
       }
 
-      nodes.current = node;
-
-      console.log(`onMouseDown: node is${nodes.current ? "" : " NOT"} found`);
+      this.nodes.current = node;
     },
     onMouseMove(event: MouseEvent): void {
       event.preventDefault();
 
-      if (!isClicked || !nodes.current) {
+      if (!this.isClicked || !this.nodes.current) {
         return;
       }
 
@@ -133,27 +125,27 @@ export default defineComponent<
         isValid = false;
       }
       // if mouse is hovering on the same node, the imput makes no sense
-      else if (isSameNode(nodes.current, node)) {
+      else if (isSameNode(this.nodes.current, node)) {
         isValid = false;
       }
       // parent can not be set to its child
-      else if (isChildNode(this.treeModel, nodes.current.id, node.id)) {
+      else if (isChildNode(this.treeModel, this.nodes.current.id, node.id)) {
         isValid = false;
       }
       // there is no sense to set a child to the same parent again
-      else if (isChildNode(this.treeModel, node.id, nodes.current.id)) {
+      else if (isChildNode(this.treeModel, node.id, this.nodes.current.id)) {
         isValid = false;
       }
 
       if (!isValid) {
-        nodes.parent?.removeBorders();
-        nodes.current.removeBorders();
-        nodes.parent = null;
+        this.nodes.parent?.removeBorders();
+        this.nodes.current.removeBorders();
+        this.nodes.parent = null;
         return;
       }
 
-      nodes.parent?.removeBorders();
-      nodes.parent = node;
+      this.nodes.parent?.removeBorders();
+      this.nodes.parent = node;
 
       const borderType = getPositionInTheBox(
         event.clientX,
@@ -164,14 +156,14 @@ export default defineComponent<
       // we know that the node exsists by this point, but use ? to remove TS warnings
       const isNext = isNextNode(
         this.treeModel,
-        nodes.current.id,
+        this.nodes.current.id,
         node?.id || -1
       );
 
       // A node can be inserted between 2 nodes. But to avoid confusions,
       // the node can not be set before next sibling node. There is no sense to to it
       if (isNext && borderType === BorderTypes.Top) {
-        nodes.parent = null;
+        this.nodes.parent = null;
         return;
       }
 
@@ -183,33 +175,33 @@ export default defineComponent<
     onMouseUp(event: MouseEvent) {
       event.preventDefault();
 
-      if (!mouseButtons.includes(event.button)) {
+      if (!this.mouseButtons.includes(event.button)) {
         return;
       }
-      mouseButtons.length = 0;
-      isClicked = false;
+      this.mouseButtons.length = 0;
+      this.isClicked = false;
 
-      if (!nodes.parent || !nodes.current) {
-        nodes.current = null;
-        nodes.parent = null;
+      if (!this.nodes.parent || !this.nodes.current) {
+        this.nodes.current = null;
+        this.nodes.parent = null;
         return;
       }
 
       const borderType = getPositionInTheBox(
         event.clientX,
         event.clientY,
-        nodes.parent.getBounds()
+        this.nodes.parent.getBounds()
       );
 
-      nodes.current.removeBorders();
-      nodes.parent.removeBorders();
+      this.nodes.current.removeBorders();
+      this.nodes.parent.removeBorders();
 
-      const nodeModel = removeNode(this.treeModel, nodes.current.id);
-      const targetID = nodes.parent.id;
+      const nodeModel = removeNode(this.treeModel, this.nodes.current.id);
+      const targetID = this.nodes.parent.id;
 
       if (!nodeModel) {
         console.warn(
-          `Faild to remove node model from the tree for ID${nodes.current.id}`
+          `Faild to remove node model from the tree for ID${this.nodes.current.id}`
         );
       } else if (borderType === BorderTypes.Top) {
         insertBeforeNode(this.treeModel, targetID, nodeModel);
@@ -217,19 +209,19 @@ export default defineComponent<
         appendNode(this.treeModel, targetID, nodeModel);
       }
 
-      nodes.current = null;
-      nodes.parent = null;
+      this.nodes.current = null;
+      this.nodes.parent = null;
     },
     onMouseLeave(event: MouseEvent): void {
       event.preventDefault();
-      isClicked = false;
-      mouseButtons.length = 0;
+      this.isClicked = false;
+      this.mouseButtons.length = 0;
 
-      nodes.current?.removeBorders();
-      nodes.parent?.removeBorders();
+      this.nodes.current?.removeBorders();
+      this.nodes.parent?.removeBorders();
 
-      nodes.current = null;
-      nodes.parent = null;
+      this.nodes.current = null;
+      this.nodes.parent = null;
     },
   },
 });

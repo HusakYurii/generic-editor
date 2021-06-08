@@ -11,6 +11,12 @@ export type TreeProps = {
 
 export type TreeData = {
   treeNodes: NodePublicInstance[];
+  isClicked: boolean;
+  mouseButtons: number[];
+  nodes: {
+    current: NodePublicInstance | null;
+    parent: NodePublicInstance | null;
+  };
 };
 
 export type TreeComputed = {
