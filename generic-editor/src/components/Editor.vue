@@ -1,18 +1,18 @@
 <template>
   <div id="editor">
-    <div id="hierarchy">
+    <div id="hierarchy-container">
       <Hierarchy />
     </div>
 
-    <div id="canvas">
+    <div id="canvas-container">
       <Canvas />
     </div>
 
-    <div id="properties">
+    <div id="properties-container">
       <Properties />
     </div>
 
-    <div id="resources">
+    <div id="resources-container">
       <Resources />
     </div>
   </div>
@@ -49,35 +49,37 @@ export default defineComponent({
   min-width: 1200px;
   min-height: 1000px;
   height: 100vh;
+  /*for debugging purpose*/
+  background-color: red;
 }
-#hierarchy,
-#canvas,
-#properties,
-#resources {
+#hierarchy-container,
+#canvas-container,
+#properties-container,
+#resources-container {
   position: absolute;
 }
-#hierarchy {
+#hierarchy-container {
   top: 0;
   bottom: 0;
   left: 0;
   width: 300px;
-  background-color: #4f4f4f;
+  background-color: #364346;
 }
-#canvas {
+#canvas-container {
   top: 0;
   right: 300px;
   bottom: 300px;
   left: 300px;
   background-color: #c2c2c2;
 }
-#properties {
+#properties-container {
   top: 0;
   right: 0;
   bottom: 0;
   width: 300px;
   background-color: #4f4f4f;
 }
-#resources {
+#resources-container {
   right: 300px;
   bottom: 0;
   left: 300px;
