@@ -10,19 +10,52 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { treeModelMock } from "./tree/TreeModelMock";
+import { defineComponent, PropType } from "vue";
+import {
+  HierarchyComputed,
+  HierarchyData,
+  HierarchyMethods,
+  HierarchyProps,
+} from "./Hierarchy";
+import { NodeModel } from "./tree/NodeElement";
 import TreeElement from "./tree/TreeElement.vue";
 
-export default defineComponent({
+export default defineComponent<
+  HierarchyProps,
+  unknown,
+  HierarchyData,
+  HierarchyComputed,
+  HierarchyMethods
+>({
   name: "Hierarchy",
   components: {
     TreeElement,
   },
+  props: {
+    treeModel: {
+      require: true,
+      type: Object as PropType<NodeModel>,
+      default(): NodeModel {
+        return {
+          id: 0,
+          name: "Default",
+          isDraggable: false,
+          isVisible: true,
+          children: [],
+        };
+      },
+    },
+  },
   data() {
     return {
-      treeModel: treeModelMock,
+      message: "",
     };
+  },
+  computed: {
+    // dummy method was added to avoid ts errors about empty HierarchyComputed type
+    isHierarchy(): boolean {
+      return true;
+    },
   },
   methods: {
     onContextmenu(event: Event) {

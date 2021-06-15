@@ -65,9 +65,6 @@ export default defineComponent<
       },
     };
   },
-  mounted() {
-    console.dir(this);
-  },
   beforeUpdate(): void {
     this.treeNodes = [];
   },

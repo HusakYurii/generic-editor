@@ -1,7 +1,7 @@
 <template>
   <div id="editor">
     <div id="hierarchy-container">
-      <Hierarchy />
+      <Hierarchy :treeModel="editorStore.treeModel" />
     </div>
 
     <div id="canvas-container">
@@ -26,6 +26,8 @@ import Hierarchy from "../components/hierarchy/Hierarchy.vue";
 import Resources from "../components/resources/Resources.vue";
 import Properties from "../components/properties/Properties.vue";
 
+import { editorStore } from "./EditorStore";
+
 export default defineComponent({
   name: "Editor",
   components: {
@@ -36,7 +38,7 @@ export default defineComponent({
   },
   data() {
     return {
-      message: "",
+      editorStore: editorStore,
     };
   },
 });
