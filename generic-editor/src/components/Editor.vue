@@ -46,8 +46,7 @@ export default defineComponent({
 #editor {
   position: relative;
   width: 100%;
-  min-width: 1200px;
-  min-height: 1000px;
+  overflow: hidden;
   height: 100vh;
   /*for debugging purpose*/
   background-color: red;
