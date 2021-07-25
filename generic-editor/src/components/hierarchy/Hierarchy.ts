@@ -1,20 +1,17 @@
-import { ComponentPublicInstance, PropType } from "vue";
-import { NodeModel } from "./tree/NodeElement";
+import { ComponentPublicInstance } from "vue";
+import { IEditorStore } from "../EditorStore";
 
 export type HierarchyProps = {
-  treeModel: {
-    require: boolean;
-    type: PropType<NodeModel>;
-    default: () => NodeModel;
-  };
+  // TBD
 };
 
 export type HierarchyData = {
   message: string;
+  editorStore: IEditorStore;
 };
 
 export type HierarchyComputed = {
-  isHierarchy: () => boolean;
+  canDeleteNode: () => boolean;
 };
 
 export type HierarchyMethods = {

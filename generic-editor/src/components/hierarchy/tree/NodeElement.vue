@@ -52,7 +52,6 @@ export default defineComponent<
         return {
           id: -1,
           name: "Default",
-          isDraggable: true,
           isVisible: true,
           children: [],
         };
@@ -95,6 +94,9 @@ export default defineComponent<
         this.isOpen = !this.isOpen;
       }
     },
+    mark(): void {
+      this.toggler.classList.toggle("selected");
+    },
     /* Sometimes when Vue rerenders the elements, an el can be null
      */
     updateNode(el: NodePublicInstance): void {
@@ -133,6 +135,10 @@ export default defineComponent<
 }
 
 .node-toggler:hover {
+  background-color: #1f2729;
+}
+
+.node-toggler.selected {
   background-color: #1f2729;
 }
 

@@ -6,20 +6,26 @@
     @mousemove="onMouseMove"
     @mouseleave="onMouseLeave"
   >
-    <NodeElement :ref="updateNode" :nodeModel="treeModel" :key="treeModel.id" />
+    <NodeElement
+      :ref="updateNode"
+      :nodeModel="editorStore.treeModel"
+      :key="editorStore.treeModel.id"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent } from "vue";
 
 import { TreeProps, TreeData, TreeComputed, TreeMethods } from "./TreeElement";
 
 import NodeElement from "./NodeElement.vue";
-import { BorderTypes, NodeModel, NodePublicInstance } from "./NodeElement";
+import { BorderTypes, NodePublicInstance } from "./NodeElement";
 import {
   appendNode,
   findElement,
+  findElementByID,
+  findNodeByID,
   getPositionInTheBox,
   insertBeforeNode,
   isChildNode,
@@ -27,6 +33,7 @@ import {
   isSameNode,
   removeNode,
 } from "./treeUtils";
+import { editorStore } from "@/components/EditorStore";
 
 export default defineComponent<
   TreeProps,
@@ -39,23 +46,9 @@ export default defineComponent<
   components: {
     NodeElement,
   },
-  props: {
-    treeModel: {
-      require: true,
-      type: Object as PropType<NodeModel>,
-      default(): NodeModel {
-        return {
-          id: -1000,
-          name: "Default",
-          isDraggable: false,
-          isVisible: true,
-          children: [],
-        };
-      },
-    },
-  },
   data() {
     return {
+      editorStore: editorStore,
       treeNodes: [],
       isClicked: false,
       mouseButtons: [],
@@ -98,11 +91,27 @@ export default defineComponent<
       );
 
       // Root node can not be dragged
-      if (!node || node.id === this.treeModel.id) {
+      if (!node || node.id === this.editorStore.treeModel.id) {
         return;
       }
 
       this.nodes.current = node;
+
+      const nodeModel = findNodeByID(this.editorStore.treeModel, node.id);
+
+      if (this.editorStore.selectedNode) {
+        if (this.editorStore.selectedNode.id !== node.id) {
+          findElementByID(
+            this.editorStore.selectedNode.id,
+            this.treeNodes
+          )?.mark();
+          this.editorStore.selectedNode = nodeModel;
+          node.mark();
+        }
+      } else {
+        this.editorStore.selectedNode = nodeModel;
+        node.mark();
+      }
     },
     onMouseMove(event: MouseEvent): void {
       event.preventDefault();
@@ -126,11 +135,15 @@ export default defineComponent<
         isValid = false;
       }
       // parent can not be set to its child
-      else if (isChildNode(this.treeModel, this.nodes.current.id, node.id)) {
+      else if (
+        isChildNode(this.editorStore.treeModel, this.nodes.current.id, node.id)
+      ) {
         isValid = false;
       }
       // there is no sense to set a child to the same parent again
-      else if (isChildNode(this.treeModel, node.id, this.nodes.current.id)) {
+      else if (
+        isChildNode(this.editorStore.treeModel, node.id, this.nodes.current.id)
+      ) {
         isValid = false;
       }
 
@@ -152,7 +165,7 @@ export default defineComponent<
 
       // we know that the node exsists by this point, but use ? to remove TS warnings
       const isNext = isNextNode(
-        this.treeModel,
+        this.editorStore.treeModel,
         this.nodes.current.id,
         node?.id || -1
       );
@@ -193,21 +206,33 @@ export default defineComponent<
       this.nodes.current.removeBorders();
       this.nodes.parent.removeBorders();
 
-      const nodeModel = removeNode(this.treeModel, this.nodes.current.id);
+      const nodeModel = removeNode(
+        this.editorStore.treeModel,
+        this.nodes.current.id
+      );
       const targetID = this.nodes.parent.id;
 
       if (!nodeModel) {
         console.warn(
           `Faild to remove node model from the tree for ID${this.nodes.current.id}`
         );
+        return;
       } else if (borderType === BorderTypes.Top) {
-        insertBeforeNode(this.treeModel, targetID, nodeModel);
+        insertBeforeNode(this.editorStore.treeModel, targetID, nodeModel);
       } else if (borderType === BorderTypes.Center) {
-        appendNode(this.treeModel, targetID, nodeModel);
+        appendNode(this.editorStore.treeModel, targetID, nodeModel);
       }
 
       this.nodes.current = null;
       this.nodes.parent = null;
+
+      if (this.editorStore.selectedNode) {
+        findElementByID(
+          this.editorStore.selectedNode.id,
+          this.treeNodes
+        )?.mark();
+        this.editorStore.selectedNode = null;
+      }
     },
     onMouseLeave(event: MouseEvent): void {
       event.preventDefault();

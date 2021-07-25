@@ -1,15 +1,13 @@
-import { ComponentPublicInstance, PropType } from "vue";
-import { Bounds, NodeModel, NodePublicInstance } from "./NodeElement";
+import { IEditorStore } from "@/components/EditorStore";
+import { ComponentPublicInstance } from "vue";
+import { Bounds, NodePublicInstance } from "./NodeElement";
 
 export type TreeProps = {
-  treeModel: {
-    require: boolean;
-    type: PropType<NodeModel>;
-    default: () => NodeModel;
-  };
+  // TBD
 };
 
 export type TreeData = {
+  editorStore: IEditorStore;
   treeNodes: NodePublicInstance[];
   isClicked: boolean;
   mouseButtons: number[];

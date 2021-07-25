@@ -35,6 +35,7 @@ export type NodeComputed = {
 
 export type NodeMethods = {
   toggle: () => void;
+  mark: () => void;
   updateNode: (el: NodePublicInstance) => void;
   showBorder: (side: BorderTypes) => void;
   removeBorders: () => void;
@@ -44,7 +45,6 @@ export type NodeMethods = {
 export type NodeModel = {
   id: number;
   name: string;
-  isDraggable: boolean;
   isVisible: boolean;
   children: NodeModel[];
 };

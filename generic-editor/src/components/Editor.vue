@@ -1,7 +1,7 @@
 <template>
   <div id="editor">
     <div id="hierarchy-container">
-      <Hierarchy :treeModel="editorStore.treeModel" />
+      <Hierarchy />
     </div>
 
     <div id="canvas-container">
